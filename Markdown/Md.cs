@@ -9,6 +9,7 @@ namespace Markdown
     {
         private readonly Dictionary<int, string> underscoresLengthToTag = new Dictionary<int, string>();
 
+
         public Md(params string[] tags)
         {
             for (int i = 0; i < tags.Length; i++)
