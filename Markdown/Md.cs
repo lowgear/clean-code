@@ -23,12 +23,14 @@ namespace Markdown
 
         private bool HandleItalic(string markdown, ref int i, int end)
         {
-            return HandleSimpleTag(markdown, ref i, end, "_", "em");
+            return HandleSimpleTag(markdown, ref i, end, "_", "em") ||
+                   HandleSimpleTag(markdown, ref i, end, "*", "em");
         }
 
         private bool HandleBold(string markdown, ref int i, int end)
         {
-            return HandleSimpleTag(markdown, ref i, end, "__", "strong");
+            return HandleSimpleTag(markdown, ref i, end, "__", "strong") ||
+                   HandleSimpleTag(markdown, ref i, end, "**", "strong");
         }
 
         private bool HandleSimpleTag(string markdown, ref int i, int end, string pattern, string tag)
@@ -117,6 +119,12 @@ namespace Markdown
         public void DoubleUnderscores_ShouldBeReplacedWithTagStrong()
         {
             CheckMdOn("__text__", "<strong>text</strong>");
+        }
+
+        [Test]
+        public void Nesting_ShouldBeReplacedWithNestedTags()
+        {
+            CheckMdOn("__*text*__", "<strong><em>text</em></strong>");
         }
 
         private void CheckMdOn(string subject, string expected)
