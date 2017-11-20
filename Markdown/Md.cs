@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -7,33 +9,83 @@ namespace Markdown
 {
     public class Md
     {
-        private readonly Dictionary<int, string> underscoresLengthToTag = new Dictionary<int, string>();
+        protected delegate bool MarkdownHandler(string markdown, ref int i, int end);
 
-        public Md(params string[] tags)
+        protected readonly List<MarkdownHandler> handlers = new List<MarkdownHandler>();
+        protected readonly StringBuilder sb = new StringBuilder();
+
+        public Md()
         {
-            for (int i = 0; i < tags.Length; i++)
+            //ORDER IS IMPORTANT!!!
+            handlers.Add(HandleBold);
+            handlers.Add(HandleItalic);
+        }
+
+        private bool HandleItalic(string markdown, ref int i, int end)
+        {
+            return HandleSimpleTag(markdown, ref i, end, "_", "em");
+        }
+
+        private bool HandleBold(string markdown, ref int i, int end)
+        {
+            return HandleSimpleTag(markdown, ref i, end, "__", "strong");
+        }
+
+        private bool HandleSimpleTag(string markdown, ref int i, int end, string pattern, string tag)
+        {
+            if (!markdown.HasAt(pattern, i) || !markdown.AtIs(i + pattern.Length, c => !char.IsWhiteSpace(c)))
+                return false;
+
+            int closingIndex;
+            try
             {
-                var tag = tags[i];
-                underscoresLengthToTag[i + 1] = tag;
+                closingIndex = markdown
+                    .FindAllFromTo(pattern, i + 1, end)
+                    .First(j => !char.IsWhiteSpace(markdown[j]));
             }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
+
+            sb.Append("<");
+            sb.Append(tag);
+            sb.Append(">");
+
+            i += pattern.Length;
+            RenderToHtml(markdown, ref i, closingIndex);
+
+            sb.Append("</");
+            sb.Append(tag);
+            sb.Append(">");
+
+            i = closingIndex + pattern.Length;
+            return true;
         }
 
         public string RenderToHtml(string markdown)
         {
-            var nodes = SplitToUnderscoresSequencesAndText(markdown);
-            var htmlTokens = TranslateMarkdownTokensToHtmlTokens(nodes);
-            var html = string.Join("", htmlTokens);
-            return html;
+            sb.Clear();
+            var i = 0;
+            RenderToHtml(markdown, ref i, markdown.Length);
+            return sb.ToString();
         }
 
-        private static List<string> TranslateMarkdownTokensToHtmlTokens(IEnumerable<INode> nodes)
+        private void RenderToHtml(string markdown, ref int i, int end)
         {
-            throw new NotImplementedException();
-        }
-
-        private static IEnumerable<INode> SplitToUnderscoresSequencesAndText(string markdown)
-        {
-            throw new NotImplementedException();
+            while (i < end)
+            {
+                var matchedSomeHandler = false;
+                foreach (var markdownHandler in handlers)
+                {
+                    if (!markdownHandler(markdown, ref i, end)) continue;
+                    matchedSomeHandler = true;
+                    break;
+                }
+                if (matchedSomeHandler) continue;
+                sb.Append(markdown[i]);
+                i++;
+            }
         }
     }
 
@@ -45,7 +97,7 @@ namespace Markdown
         [SetUp]
         public void SetUp()
         {
-            md = new Md("em", "strong");
+            md = new Md();
         }
 
 
@@ -56,9 +108,15 @@ namespace Markdown
         }
 
         [Test]
-        public void SingleUnderscores_ShouldBeReplacedWithTag()
+        public void SingleUnderscores_ShouldBeReplacedWithTagEm()
         {
             CheckMdOn("_text_", "<em>text</em>");
+        }
+
+        [Test]
+        public void DoubleUnderscores_ShouldBeReplacedWithTagStrong()
+        {
+            CheckMdOn("__text__", "<strong>text</strong>");
         }
 
         private void CheckMdOn(string subject, string expected)
