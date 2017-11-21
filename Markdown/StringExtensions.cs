@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Markdown
 {
@@ -17,7 +18,7 @@ namespace Markdown
 
         public static bool AtIs(this string str, int i, Func<char, bool> predicate)
         {
-            return i < str.Length && predicate(str[i]);
+            return 0 <= i && i < str.Length && predicate(str[i]);
         }
 
         public static IEnumerable<int> FindAllFromTo(this string str, string pattern, int from, int to)
@@ -28,6 +29,14 @@ namespace Markdown
                 if (str.HasAt(pattern, i))
                     yield return i;
             }
+        }
+
+        public static IEnumerable<char> CharsFromTo(this string str, int from, int to)
+        {
+            var i = Math.Max(from, 0);
+            var end = Math.Min(to - 1, str.Length - 1);
+            for (; i < end; i++)
+                yield return str[i];
         }
     }
 }
