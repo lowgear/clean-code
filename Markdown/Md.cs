@@ -17,7 +17,17 @@ namespace Markdown
             new Dictionary<MarkdownHandler, IEnumerable<MarkdownHandler>>();
 
         protected readonly HashSet<MarkdownHandler> ExludedHandlers = new HashSet<MarkdownHandler>();
-        protected readonly StringBuilder Sb = new StringBuilder();
+        private readonly StringBuilder sb = new StringBuilder();
+
+        protected void AddToResult(string str)
+        {
+            sb.Append(str);
+        }
+
+        protected void AddToResult(char c)
+        {
+            sb.Append(c);
+        }
 
         protected const char Escape = '\\';
 
@@ -71,16 +81,16 @@ namespace Markdown
                 return false;
             }
 
-            Sb.Append("<");
-            Sb.Append(tag);
-            Sb.Append(">");
+            AddToResult("<");
+            AddToResult(tag);
+            AddToResult(">");
 
             i += pattern.Length;
             RenderToHtml(markdown, ref i, closingIndex);
 
-            Sb.Append("</");
-            Sb.Append(tag);
-            Sb.Append(">");
+            AddToResult("</");
+            AddToResult(tag);
+            AddToResult(">");
 
             i = closingIndex + pattern.Length;
             return true;
@@ -88,10 +98,10 @@ namespace Markdown
 
         public string RenderToHtml(string markdown)
         {
-            Sb.Clear();
+            sb.Clear();
             var i = 0;
             RenderToHtml(markdown, ref i, markdown.Length);
-            return Sb.ToString();
+            return sb.ToString();
         }
 
         private void RenderToHtml(string markdown, ref int i, int end)
@@ -104,7 +114,7 @@ namespace Markdown
                     continue;
                 }
                 var matchedSomeHandler = false;
-                foreach (var markdownHandler in Handlers.Excluding(ExludedHandlers))
+                foreach (var markdownHandler in Handlers.Except(ExludedHandlers))
                 {
                     if (!TryHandler(markdown, ref i, end, markdownHandler))
                         continue;
@@ -113,7 +123,7 @@ namespace Markdown
                 }
                 if (matchedSomeHandler) continue;
 
-                Sb.Append(markdown[i]);
+                AddToResult(markdown[i]);
                 i++;
             }
         }
@@ -122,7 +132,7 @@ namespace Markdown
         {
             IEnumerable<MarkdownHandler> blockedByCurrentHandler =
                 HandlerBlocks[markdownHandler]
-                    .Excluding(ExludedHandlers)
+                    .Except(ExludedHandlers)
                     .ToArray();
             ExludedHandlers.AddAll(blockedByCurrentHandler);
             var currentHandlerSucceeded = markdownHandler(markdown, ref i, end);
@@ -134,12 +144,12 @@ namespace Markdown
         {
             if (i + 1 < markdown.Length)
             {
-                Sb.Append(markdown[i + 1]);
+                sb.Append(markdown[i + 1]);
                 i += 2;
             }
             else
             {
-                Sb.Append(Escape);
+                sb.Append(Escape);
                 i++;
             }
         }

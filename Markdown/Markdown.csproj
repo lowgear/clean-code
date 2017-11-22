@@ -52,7 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EnumerableExtensions.cs" />
+    <Compile Include="CollectionExtensions.cs" />
     <Compile Include="Md.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="StringExtensions.cs" />
