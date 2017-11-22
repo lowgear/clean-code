@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Markdown.LexemConsumers;
 using Markdown.Lexems;
 using MoreLinq;
 
@@ -52,9 +52,7 @@ namespace Markdown
         {
             var curIndex = from;
             while (curIndex < to)
-            {
                 curIndex += lexems[curIndex].Render(lexems, curIndex, to, sb);
-            }
         }
     }
 }

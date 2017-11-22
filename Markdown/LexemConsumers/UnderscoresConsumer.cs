@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Markdown.Lexems;
 
-namespace Markdown
+namespace Markdown.LexemConsumers
 {
     public class UnderscoresConsumer : ILexemConsumer
     {

@@ -1,6 +1,6 @@
 ﻿using Markdown.Lexems;
 
-namespace Markdown
+namespace Markdown.LexemConsumers
 {
     public interface ILexemConsumer
     {

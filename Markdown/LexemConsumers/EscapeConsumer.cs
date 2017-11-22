@@ -1,7 +1,7 @@
 ﻿using System;
 using Markdown.Lexems;
 
-namespace Markdown
+namespace Markdown.LexemConsumers
 {
     public class EscapeConsumer : ILexemConsumer
     {
