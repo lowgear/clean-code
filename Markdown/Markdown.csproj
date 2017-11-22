@@ -52,13 +52,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="INode.cs" />
+    <Compile Include="CollectionExtensions.cs" />
     <Compile Include="Md.cs" />
     <Compile Include="Program.cs" />
+    <Compile Include="StringExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="README.md" />
+    <None Include="Spec.md" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
