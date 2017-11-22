@@ -1,69 +1,60 @@
 ﻿using System;
 using System.Collections.Generic;
-using FluentAssertions;
-using NUnit.Framework;
+using System.Linq;
+using System.Text;
+using Markdown.Lexems;
+using MoreLinq;
 
 namespace Markdown
 {
     public class Md
     {
-        private readonly Dictionary<int, string> underscoresLengthToTag = new Dictionary<int, string>();
+        private readonly HashSet<ILexemConsumer> lexemConsumers = new HashSet<ILexemConsumer>();
 
-        public Md(params string[] tags)
+        public void AddLexemConsumer(ILexemConsumer lexemConsumer)
         {
-            for (int i = 0; i < tags.Length; i++)
-            {
-                var tag = tags[i];
-                underscoresLengthToTag[i + 1] = tag;
-            }
+            lexemConsumers.Add(lexemConsumer);
         }
 
         public string RenderToHtml(string markdown)
         {
-            var nodes = SplitToUnderscoresSequencesAndText(markdown);
-            var htmlTokens = TranslateMarkdownTokensToHtmlTokens(nodes);
-            var html = string.Join("", htmlTokens);
-            return html;
+            var lexems = ToLexems(markdown).ToArray();
+            var sb = new StringBuilder();
+            RenderRange(lexems, 0, lexems.Length, sb);
+            return sb.ToString();
         }
 
-        private static List<string> TranslateMarkdownTokensToHtmlTokens(IEnumerable<INode> nodes)
+        private IEnumerable<ILexem> ToLexems(string markdown)
         {
-            throw new NotImplementedException();
+            var lastLexemEndedAt = 0;
+            for (var index = 0; index < markdown.Length; index++)
+            {
+                var bestConsumer = lexemConsumers.MaxBy(consumer => consumer.Consumes(markdown, index));
+
+                var lexemLength = bestConsumer.Consumes(markdown, index);
+                if (lexemLength == 0)
+                    continue;
+
+                if (index != lastLexemEndedAt)
+                    yield return new TextLexem(markdown.Substring(lastLexemEndedAt, index - lastLexemEndedAt));
+
+                yield return bestConsumer.Consume(markdown, index);
+
+                index = index + lexemLength - 1;
+                lastLexemEndedAt = index + 1;
+            }
+
+            if (lastLexemEndedAt != markdown.Length)
+                yield return new TextLexem(markdown.Substring(lastLexemEndedAt));
         }
 
-        private static IEnumerable<INode> SplitToUnderscoresSequencesAndText(string markdown)
+        public static void RenderRange(IList<ILexem> lexems, int from, int to, StringBuilder sb)
         {
-            throw new NotImplementedException();
-        }
-    }
-
-    [TestFixture]
-    public class Md_ShouldRender
-    {
-        private Md md;
-
-        [SetUp]
-        public void SetUp()
-        {
-            md = new Md("em", "strong");
-        }
-
-
-        [Test]
-        public void LeaveUntouched_TextWithoutUnderscores()
-        {
-            CheckMdOn("no underscores", "no underscores");
-        }
-
-        [Test]
-        public void SingleUnderscores_ShouldBeReplacedWithTag()
-        {
-            CheckMdOn("_text_", "<em>text</em>");
-        }
-
-        private void CheckMdOn(string subject, string expected)
-        {
-            md.RenderToHtml(subject).Should().Be(expected);
+            var curIndex = from;
+            while (curIndex < to)
+            {
+                curIndex += lexems[curIndex].Render(lexems, curIndex, to, sb);
+            }
         }
     }
 }
