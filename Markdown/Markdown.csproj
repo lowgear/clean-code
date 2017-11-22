@@ -53,7 +53,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CollectionExtensions.cs" />
+    <Compile Include="ILexem.cs" />
     <Compile Include="Md.cs" />
+    <Compile Include="Md_ShouldRender.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="StringExtensions.cs" />
   </ItemGroup>
