@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Markdown.Lexems;
 using MoreLinq;
 
 namespace Markdown
@@ -18,32 +20,41 @@ namespace Markdown
         {
             var lexems = ToLexems(markdown).ToArray();
             var sb = new StringBuilder();
-            lexems[0].Render(lexems, 0, lexems.Length, sb);
+            RenderRange(lexems, 0, lexems.Length, sb);
             return sb.ToString();
         }
 
         private IEnumerable<ILexem> ToLexems(string markdown)
         {
             var lastLexemEndedAt = 0;
-            for (var i = 0; i < markdown.Length;)
+            for (var index = 0; index < markdown.Length; index++)
             {
-                var bestConsumer = lexemConsumers.MaxBy(consumer => consumer.Consumes(markdown, i));
+                var bestConsumer = lexemConsumers.MaxBy(consumer => consumer.Consumes(markdown, index));
 
-                var lexemLength = bestConsumer.Consumes(markdown, i);
+                var lexemLength = bestConsumer.Consumes(markdown, index);
                 if (lexemLength == 0)
-                {
-                    i++;
                     continue;
-                }
-                if (i != lastLexemEndedAt)
-                    yield return new TextLexem(markdown.Substring(lastLexemEndedAt, i - lastLexemEndedAt));
-                yield return bestConsumer.Consume(markdown, i);
 
-                i = i + lexemLength;
-                lastLexemEndedAt = i;
+                if (index != lastLexemEndedAt)
+                    yield return new TextLexem(markdown.Substring(lastLexemEndedAt, index - lastLexemEndedAt));
+
+                yield return bestConsumer.Consume(markdown, index);
+
+                index = index + lexemLength - 1;
+                lastLexemEndedAt = index + 1;
             }
+
             if (lastLexemEndedAt != markdown.Length)
                 yield return new TextLexem(markdown.Substring(lastLexemEndedAt));
+        }
+
+        public static void RenderRange(IList<ILexem> lexems, int from, int to, StringBuilder sb)
+        {
+            var curIndex = from;
+            while (curIndex < to)
+            {
+                curIndex += lexems[curIndex].Render(lexems, curIndex, to, sb);
+            }
         }
     }
 }

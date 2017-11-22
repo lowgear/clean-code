@@ -60,13 +60,16 @@
   <ItemGroup>
     <Compile Include="CollectionExtensions.cs" />
     <Compile Include="EscapeConsumer.cs" />
-    <Compile Include="ILexem.cs" />
+    <Compile Include="Lexems\EscapeLexem.cs" />
+    <Compile Include="Lexems\ILexem.cs" />
     <Compile Include="ILexemConsumer.cs" />
     <Compile Include="Md.cs" />
     <Compile Include="Md_ShouldRender.cs" />
+    <Compile Include="Lexems\PairableTagLexem.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="StringExtensions.cs" />
-    <Compile Include="TextLexem.cs" />
+    <Compile Include="Lexems\TextLexem.cs" />
+    <Compile Include="UnderscoresConsumer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

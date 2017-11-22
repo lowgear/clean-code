@@ -1,4 +1,6 @@
-﻿namespace Markdown
+﻿using Markdown.Lexems;
+
+namespace Markdown
 {
     public interface ILexemConsumer
     {
