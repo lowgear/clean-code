@@ -12,9 +12,10 @@ namespace Markdown
         public void SetUp()
         {
             md = new Md();
+            md.AddLexemConsumer(new EscapeConsumer('\\'));
         }
 
-        //[Timeout(1000)]
+        [Timeout(1000)]
         [TestCase(@"no underscores", @"no underscores", TestName = "LeaveUntouched_TextWithoutUnderscores")]
         [TestCase(@"_text_", @"<em>text</em>", TestName = "SingleUnderscores_ShouldBeReplacedWithTagEm")]
         [TestCase(@"__text__", @"<strong>text</strong>", TestName =

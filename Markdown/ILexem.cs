@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Markdown
 {
-    internal interface ILexem
+    public interface ILexem
     {
         string Raw { get; }
         string Rendered { get; }
