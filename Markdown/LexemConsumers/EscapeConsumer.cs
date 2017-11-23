@@ -25,7 +25,10 @@ namespace Markdown.LexemConsumers
                 throw new ArgumentException();
             if (consumes == 1)
                 return new TextLexem(escapeChar.ToString());
-            return new EscapeLexem(markdown.Substring(i, Math.Min(2, markdown.Length - i)), markdown[i + 1]);
+
+            var raw = markdown.Substring(i, 2);
+            var escapedChar = markdown[i + 1];
+            return new EscapeLexem(raw, escapedChar);
         }
     }
 }

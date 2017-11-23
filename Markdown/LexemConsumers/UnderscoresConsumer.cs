@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Markdown.Lexems;
 
 namespace Markdown.LexemConsumers
@@ -15,16 +16,16 @@ namespace Markdown.LexemConsumers
 
         public int Consumes(string markdown, int i)
         {
-            int j;
-            for (j = i; j < markdown.Length && markdown[j] == '_'; j++);
-            return j - i;
+            var lengthOfUndescoreSequence = Enumerable.Range(0, markdown.Length)
+                .First(length => i + length >= markdown.Length || markdown[i + length] != '_');
+            return lengthOfUndescoreSequence;
         }
 
         public ILexem Consume(string markdown, int i)
         {
             var length = Consumes(markdown, i);
             if (length == 0)
-                throw new ArgumentException();
+                throw new ArgumentException("Zero chars were consumed which probably will lead to an infinite loop.");
             var raw = markdown.Substring(i, length);
             if (tagDictionary.ContainsKey(length))
                 return new PairableTagLexem(raw, tagDictionary[length]);

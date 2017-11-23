@@ -38,20 +38,44 @@ namespace Markdown.Lexems
             return pairIndex - curIndex + 1;
         }
 
-        private bool MayBeOpening(IList<ILexem> lexems, int curIndex, int end)
+        private static bool MayBeOpening(IList<ILexem> lexems, int curIndex, int end)
         {
-            return !(curIndex + 1 < end &&
-                     !(lexems[curIndex + 1] is EscapeLexem) &&
-                     char.IsWhiteSpace(lexems[curIndex + 1].Raw[0])) &&
+            var nextLexemExists = curIndex + 1 < end;
+            bool AndIsNotEscapeLexem() => !(lexems[curIndex + 1] is EscapeLexem);
+            bool WhichStartsWithWhiteSpace() => char.IsWhiteSpace(lexems[curIndex + 1].Raw[0]);
+
+            return !(nextLexemExists && AndIsNotEscapeLexem() && WhichStartsWithWhiteSpace()) &&
                    !IsBetweenLettersOrDigits(lexems, curIndex);
         }
 
-        private bool MayBeClosing(IList<ILexem> lexems, int curIndex)
+        private static bool MayBeClosing(IList<ILexem> lexems, int curIndex)
         {
-            return !(curIndex - 1 >= 0 &&
-                     !(lexems[curIndex - 1] is EscapeLexem) &&
-                    char.IsWhiteSpace(lexems[curIndex - 1].Raw.Last())) &&
+            var previousLexemExists = curIndex - 1 >= 0;
+            bool AndIsNotEscapeLexem() => !(lexems[curIndex - 1] is EscapeLexem);
+            bool WhichEndsWithWhiteSpace() => char.IsWhiteSpace(lexems[curIndex - 1].Raw.Last());
+
+            return !(previousLexemExists && AndIsNotEscapeLexem() && WhichEndsWithWhiteSpace()) &&
                    !IsBetweenLettersOrDigits(lexems, curIndex);
+        }
+
+        private static bool IsBetweenLettersOrDigits(IList<ILexem> lexems, int curIndex)
+        {
+            var end = lexems.Count;
+
+            var nextLexemExists = curIndex + 1 < end;
+            bool AndNextIsNotEscapeLexem() => !(lexems[curIndex + 1] is EscapeLexem);
+            bool WhichStartsWithLetterOrDigit() => char.IsLetterOrDigit(lexems[curIndex + 1].Raw[0]);
+
+            var previousLexemExists = curIndex - 1 >= 0;
+            bool AndPrevIsNotEscapeLexem() => !(lexems[curIndex - 1] is EscapeLexem);
+            bool WhichEndsWithLetterOrDigit() => char.IsLetterOrDigit(lexems[curIndex - 1].Raw.Last());
+
+            return previousLexemExists &&
+                   AndPrevIsNotEscapeLexem() &&
+                   WhichEndsWithLetterOrDigit() &&
+                   nextLexemExists &&
+                   AndNextIsNotEscapeLexem() &&
+                   WhichStartsWithLetterOrDigit();
         }
 
         private string MakeOpeningTag()
@@ -68,20 +92,10 @@ namespace Markdown.Lexems
         {
             var lexem = lexems[i];
             var prevLexem = lexems[i - 1];
-            return lexem is PairableTagLexem tagLexem &&
-                   tagLexem.MayBeClosing(lexems, i) &&
+            return lexem is PairableTagLexem &&
+                   MayBeClosing(lexems, i) &&
                    lexem.Raw == Raw &&
                    !char.IsWhiteSpace(prevLexem.Raw.Last());
-        }
-
-        private static bool IsBetweenLettersOrDigits(IList<ILexem> lexems, int curIndex)
-        {
-            return curIndex - 1 >= 0 &&
-                   !(lexems[curIndex - 1] is EscapeLexem) &&
-                   char.IsLetterOrDigit(lexems[curIndex - 1].Raw.Last()) &&
-                   curIndex + 1 < lexems.Count &&
-                   !(lexems[curIndex + 1] is EscapeLexem) &&
-                   char.IsLetterOrDigit(lexems[curIndex + 1].Raw[0]);
         }
     }
 }

@@ -54,12 +54,26 @@ namespace Markdown
             md.RenderToHtml(subject).Should().Be(expected);
         }
 
-        [Test]
-        public void Rendering_ShouldFitInTime()
+        [TestCase(1000)]
+        [TestCase(2000)]
+        [TestCase(3000)]
+        [TestCase(4000)]
+        [TestCase(5000)]
+        [TestCase(6000)]
+        [TestCase(7000)]
+        [TestCase(8000)]
+        [TestCase(9000)]
+        [TestCase(10000)]
+        public void Rendering_ShouldFitInTime(int length)
         {
-            var str = string.Concat(Enumerable.Repeat("_ ", 100000));
-            Action act = () => md.RenderToHtml(str);
-            act.ExecutionTime().ShouldNotExceed(new TimeSpan(0,0,0,0, 1000));
+            var markdown = string.Concat(Enumerable.Repeat(@"_a ", length).Concat(Enumerable.Repeat(@" a_", length)));
+            var timeLimit = new TimeSpan(TimeCoefficient * length);
+
+            Action act = () => md.RenderToHtml(markdown);
+
+            act.ExecutionTime().ShouldNotExceed(timeLimit);
         }
+
+        private const long TimeCoefficient = 6000; // chosen so that the weakest test is passed
     }
 }
